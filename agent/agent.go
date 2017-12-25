@@ -3,6 +3,7 @@ package agent
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"runtime"
 	"sync"
@@ -27,7 +28,27 @@ func NewAgent(config *config.Config) (*Agent, error) {
 	}
 
 	if !a.Config.Agent.OmitHostname {
-		if a.Config.Agent.Hostname == "" {
+		hostname := a.Config.Agent.Hostname
+		ifaceName := a.Config.Agent.OverrideHostnameWithIp
+		if ifaceName != "" {
+			ifaces, _ := net.Interfaces()
+			for _, i := range ifaces {
+				if i.Name != ifaceName {
+					continue
+				}
+				addrs, _ := i.Addrs()
+				for _, addr := range addrs {
+					if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+						if ipnet.IP.To4() != nil {
+							hostname = ipnet.IP.String()
+							a.Config.Agent.Hostname = hostname
+							log.Printf("Set hostname to ip address %s", hostname)
+						}
+					}
+				}
+			}
+		}
+		if hostname == "" {
 			hostname, err := os.Hostname()
 			if err != nil {
 				return nil, err

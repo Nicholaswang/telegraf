@@ -136,9 +136,10 @@ type AgentConfig struct {
 	Logfile string
 
 	// Quiet is the option for running in quiet mode
-	Quiet        bool
-	Hostname     string
-	OmitHostname bool
+	Quiet                  bool
+	Hostname               string
+	OverrideHostnameWithIp string
+	OmitHostname           bool
 }
 
 // Inputs returns a list of strings of the configured inputs.
@@ -249,6 +250,8 @@ var header = `# Telegraf Configuration
 
   ## Override default hostname, if empty use os.Hostname()
   hostname = ""
+	## Override hostname with net interface name, e.g., eth0
+	override_hostname_with_ip = "eth0"
   ## If set to true, do no set the "host" tag in the telegraf agent.
   omit_hostname = false
 
